@@ -13,20 +13,24 @@ from app.repositories.inventory_repository import (
 )
 from app.repositories.matrix_repository import MatrixRepository
 from app.repositories.operation_repository import OperationRepository
-from app.repositories.product_repository import ProductRepository
+from app.repositories.product_repository import CategoryRepository, ProductRepository
+from app.repositories.report_repository import ReportRepository
 from app.repositories.sale_repository import SaleRepository
-from app.repositories.user_repository import UserRepository
+from app.repositories.user_repository import RoleRepository, UserRepository
 from app.repositories.vector_repository import VectorRepository
 
 __all__ = [
     "BaseRepository",
     "BranchRepository",
+    "CategoryRepository",
     "CompanyRepository",
     "InventoryMovementRepository",
     "InventoryRepository",
     "MatrixRepository",
     "OperationRepository",
     "ProductRepository",
+    "ReportRepository",
+    "RoleRepository",
     "SaleRepository",
     "UserRepository",
     "VectorRepository",

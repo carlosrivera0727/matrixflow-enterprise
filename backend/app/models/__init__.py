@@ -26,6 +26,8 @@ __all__ = [
     "Branch",
     "Category",
     "Product",
+    "Sale",
+    "SaleDetail",
     "Inventory",
     "InventoryMovement",
     "Target",

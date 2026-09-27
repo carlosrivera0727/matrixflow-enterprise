@@ -7,10 +7,15 @@ from app.core.database import Base
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-
     role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), default="Activo", nullable=False)
 
-    role = relationship("Role")
+    role_record = relationship("Role", back_populates="users")
+
+    @property
+    def role(self) -> str:
+        return self.role_record.name

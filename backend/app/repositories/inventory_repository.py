@@ -31,3 +31,12 @@ class InventoryMovementRepository(BaseRepository[InventoryMovement]):
             .order_by(InventoryMovement.movement_date.desc())
         )
         return self.session.scalars(statement).all()
+
+    def list_recent(self, *, offset: int = 0, limit: int = 100) -> Sequence[InventoryMovement]:
+        statement = (
+            select(InventoryMovement)
+            .order_by(InventoryMovement.movement_date.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return self.session.scalars(statement).all()

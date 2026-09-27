@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.user import User
+from app.models.role import Role
 from app.repositories.base import BaseRepository
 
 
@@ -9,6 +10,15 @@ class UserRepository(BaseRepository[User]):
     def __init__(self, session: Session) -> None:
         super().__init__(session, User)
 
-    def get_by_username(self, username: str) -> User | None:
-        statement = select(User).where(User.username == username)
+    def get_by_email(self, email: str) -> User | None:
+        statement = select(User).where(User.email == email)
+        return self.session.scalar(statement)
+
+
+class RoleRepository(BaseRepository[Role]):
+    def __init__(self, session: Session) -> None:
+        super().__init__(session, Role)
+
+    def get_by_name(self, name: str) -> Role | None:
+        statement = select(Role).where(Role.name == name)
         return self.session.scalar(statement)

@@ -12,5 +12,5 @@ class OperationRepository(BaseRepository[Operation]):
         super().__init__(session, Operation)
 
     def list_recent(self, *, limit: int = 100) -> Sequence[Operation]:
-        statement = select(Operation).order_by(Operation.id.desc()).limit(limit)
+        statement = select(Operation).order_by(Operation.created_at.desc()).limit(limit)
         return self.session.scalars(statement).all()
