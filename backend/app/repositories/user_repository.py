@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.user import User
@@ -11,7 +11,7 @@ class UserRepository(BaseRepository[User]):
         super().__init__(session, User)
 
     def get_by_email(self, email: str) -> User | None:
-        statement = select(User).where(User.email == email)
+        statement = select(User).where(func.lower(User.email) == email.lower())
         return self.session.scalar(statement)
 
 

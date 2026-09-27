@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 
 from pydantic import AliasChoices, EmailStr, Field
@@ -21,3 +22,14 @@ class LoginResponse(APIModel):
     access_token: str = Field(min_length=1)
     token_type: Literal["bearer"] = "bearer"
     user: AuthenticatedUser
+
+
+class TokenPayload(APIModel):
+    sub: str = Field(pattern=r"^[1-9]\d*$")
+    email: EmailStr
+    role: UserRole
+    type: Literal["access"]
+    iat: datetime
+    exp: datetime
+    iss: str = Field(min_length=1)
+    aud: str = Field(min_length=1)

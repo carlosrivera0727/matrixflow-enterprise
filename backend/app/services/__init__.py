@@ -1,5 +1,6 @@
 """Application service layer."""
 
+from app.services.auth_service import AuthService
 from app.services.base import BaseService
 from app.services.branch_service import BranchService
 from app.services.company_service import CompanyService
@@ -14,6 +15,7 @@ from app.services.vector_service import VectorService
 
 __all__ = [
     "BaseService",
+    "AuthService",
     "BranchService",
     "CompanyService",
     "InventoryService",

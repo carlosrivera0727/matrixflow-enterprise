@@ -14,3 +14,15 @@ class ResourceConflictError(ApplicationError):
 
 class PersistenceError(ApplicationError):
     code = "persistence_error"
+
+
+class AuthenticationError(ApplicationError):
+    code = "authentication_error"
+
+
+class InvalidTokenError(AuthenticationError):
+    code = "invalid_token"
+
+
+class PermissionDeniedError(ApplicationError):
+    code = "permission_denied"

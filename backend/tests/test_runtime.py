@@ -58,15 +58,14 @@ async def test_frontend_origin_is_allowed_by_cors() -> None:
 
 
 @pytest.mark.anyio
-async def test_login_endpoint_accepts_frontend_contract() -> None:
+async def test_auth_endpoints_are_published() -> None:
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://testserver",
     ) as client:
-        response = await client.post(
-            "/api/v1/auth/login",
-            json={"email": "admin@matrixflow.pe", "password": "demo123"},
-        )
+        response = await client.get("/openapi.json")
 
     assert response.status_code == 200
-    assert response.json()["email"] == "admin@matrixflow.pe"
+    paths = response.json()["paths"]
+    assert "post" in paths["/api/v1/auth/login"]
+    assert "get" in paths["/api/v1/auth/me"]

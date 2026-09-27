@@ -45,6 +45,28 @@ python -m pytest -q
 
 Copia `.env.example` como `.env` y ajusta los valores. El archivo `.env` real está excluido de Git. Nunca se debe publicar `JWT_SECRET_KEY` de producción.
 
+## Autenticación
+
+El inicio de sesión valida usuarios almacenados en la base de datos y devuelve un JWT:
+
+```http
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@matrixflow.pe",
+  "password": "contraseña-segura"
+}
+```
+
+Los recursos protegidos reciben el token en la cabecera `Authorization`:
+
+```http
+Authorization: Bearer <accessToken>
+```
+
+`GET /api/v1/auth/me` devuelve el usuario de la sesión. En cada solicitud se comprueba que el usuario continúe registrado y activo. La función `require_roles` permite limitar endpoints a uno o más roles.
+
 ## Arquitectura
 
 ```text

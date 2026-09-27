@@ -27,7 +27,7 @@ class UserService(BaseService):
         return UserResponse.model_validate(self._get_user(user_id))
 
     def create(self, data: UserCreate) -> UserResponse:
-        email = str(data.email)
+        email = str(data.email).lower()
         if self.users.get_by_email(email) is not None:
             raise ResourceConflictError("Ya existe un usuario con ese correo.")
 
@@ -50,6 +50,8 @@ class UserService(BaseService):
 
         email = values.get("email")
         if email is not None:
+            email = email.lower()
+            values["email"] = email
             existing = self.users.get_by_email(email)
             if existing is not None and existing.id != user.id:
                 raise ResourceConflictError("Ya existe un usuario con ese correo.")
