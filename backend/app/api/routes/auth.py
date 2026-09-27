@@ -5,7 +5,7 @@ from app.services.auth_service import login_user
 
 
 router = APIRouter(
-    prefix="/api/v1/auth",
+    prefix="/auth",
     tags=["Auth"],
 )
 

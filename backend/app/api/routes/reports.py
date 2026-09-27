@@ -1,12 +1,12 @@
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/api/v1/reports",
+    prefix="/reports",
     tags=["Reports"],
 )
 
 
-@router.get("/")
+@router.get("")
 def get_reports():
     return {
         "status": "ok",

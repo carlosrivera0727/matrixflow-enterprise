@@ -1,12 +1,12 @@
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/api/v1/vectors",
+    prefix="/vectors",
     tags=["Vectors"],
 )
 
 
-@router.post("/")
+@router.post("")
 def create_vector():
     return {
         "status": "ok",

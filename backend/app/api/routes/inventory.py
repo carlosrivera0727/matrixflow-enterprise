@@ -1,12 +1,12 @@
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/api/v1/inventory",
+    prefix="/inventory",
     tags=["Inventory"],
 )
 
 
-@router.get("/")
+@router.get("")
 def get_inventory():
     return {
         "status": "ok",

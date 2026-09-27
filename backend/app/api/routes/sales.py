@@ -1,12 +1,12 @@
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/api/v1/sales",
+    prefix="/sales",
     tags=["Sales"],
 )
 
 
-@router.get("/")
+@router.get("")
 def get_sales():
     return {
         "status": "ok",

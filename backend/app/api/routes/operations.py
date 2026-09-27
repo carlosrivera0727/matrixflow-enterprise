@@ -1,12 +1,12 @@
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/api/v1/operations",
+    prefix="/operations",
     tags=["Operations"],
 )
 
 
-@router.post("/")
+@router.post("")
 def create_operation():
     return {
         "status": "ok",
@@ -14,7 +14,7 @@ def create_operation():
     }
 
 
-@router.get("/")
+@router.get("")
 def get_operations():
     return {
         "status": "ok",

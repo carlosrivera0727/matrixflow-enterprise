@@ -1,12 +1,12 @@
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/api/v1/products",
+    prefix="/products",
     tags=["Products"],
 )
 
 
-@router.get("/")
+@router.get("")
 def get_products():
     return {
         "status": "ok",

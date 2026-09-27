@@ -44,3 +44,27 @@ python -m pytest -q
 ## Variables de entorno
 
 Copia `.env.example` como `.env` y ajusta los valores. El archivo `.env` real está excluido de Git. Nunca se debe publicar `JWT_SECRET_KEY` de producción.
+
+## Arquitectura
+
+```text
+app/
+├── api/
+│   ├── dependencies.py   # Dependencias compartidas de FastAPI
+│   ├── router.py         # Router central y prefijo /api/v1
+│   └── routes/           # Entrada y salida HTTP
+├── algorithms/           # Contratos y algoritmos matemáticos puros
+├── core/                 # Configuración, base de datos y errores comunes
+├── models/               # Entidades SQLAlchemy
+├── repositories/         # Consultas y persistencia
+├── schemas/              # Contratos Pydantic
+└── services/             # Casos de uso y control de transacciones
+```
+
+Reglas de dependencia:
+
+- Los routers sólo traducen HTTP y llaman servicios.
+- Los servicios aplican reglas de negocio y controlan `commit` o `rollback`.
+- Los repositorios contienen las consultas SQLAlchemy y nunca confirman transacciones.
+- Los algoritmos no dependen de FastAPI, SQLAlchemy ni Pydantic.
+- Los modelos no importan routers, servicios ni repositorios.

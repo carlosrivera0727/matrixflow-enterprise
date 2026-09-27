@@ -1,12 +1,12 @@
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/api/v1/matrices",
+    prefix="/matrices",
     tags=["Matrices"],
 )
 
 
-@router.post("/")
+@router.post("")
 def create_matrix():
     return {
         "status": "ok",

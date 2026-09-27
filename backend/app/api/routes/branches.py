@@ -1,12 +1,12 @@
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/api/v1/branches",
+    prefix="/branches",
     tags=["Branches"],
 )
 
 
-@router.get("/")
+@router.get("")
 def get_branches():
     return {
         "status": "ok",
