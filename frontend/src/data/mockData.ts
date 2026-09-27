@@ -8,20 +8,31 @@ const isoDaysAgo = (days: number) => {
 };
 
 export const initialMockState: MockState = {
-  company: {
+  companies: [{
+    id: 1,
     name: "MatrixFlow Enterprise S.A.C.",
     taxId: "20601234567",
     sector: "Tecnología y comercio",
     email: "contacto@matrixflow.pe",
     phone: "+51 1 555 0142",
     address: "Av. Javier Prado 2450, San Borja, Lima",
-  },
+    status: "Activa",
+  }, {
+    id: 2,
+    name: "MatrixFlow Retail S.A.C.",
+    taxId: "20607654321",
+    sector: "Comercio minorista",
+    email: "retail@matrixflow.pe",
+    phone: "+51 1 555 0198",
+    address: "Av. Larco 880, Miraflores, Lima",
+    status: "Inactiva",
+  }],
   branches: [
-    { id: 1, name: "Sucursal Lima Centro", city: "Lima", address: "Av. Garcilaso 1250", status: "Activa" },
-    { id: 2, name: "Sucursal Arequipa", city: "Arequipa", address: "Calle Mercaderes 318", status: "Activa" },
-    { id: 3, name: "Sucursal Trujillo", city: "Trujillo", address: "Jr. Pizarro 650", status: "Activa" },
-    { id: 4, name: "Sucursal Cusco", city: "Cusco", address: "Av. El Sol 420", status: "Activa" },
-    { id: 5, name: "Sucursal Piura", city: "Piura", address: "Av. Grau 880", status: "Activa" },
+    { id: 1, companyId: 1, name: "Sucursal Lima Centro", city: "Lima", address: "Av. Garcilaso 1250", status: "Activa" },
+    { id: 2, companyId: 1, name: "Sucursal Arequipa", city: "Arequipa", address: "Calle Mercaderes 318", status: "Activa" },
+    { id: 3, companyId: 1, name: "Sucursal Trujillo", city: "Trujillo", address: "Jr. Pizarro 650", status: "Activa" },
+    { id: 4, companyId: 1, name: "Sucursal Cusco", city: "Cusco", address: "Av. El Sol 420", status: "Activa" },
+    { id: 5, companyId: 1, name: "Sucursal Piura", city: "Piura", address: "Av. Grau 880", status: "Activa" },
   ],
   products: [
     { id: 1, sku: "TEC-LAP-001", name: "Laptop empresarial", category: "Computadoras", price: 3299, minimumStock: 8, status: "Activo" },
@@ -41,6 +52,12 @@ export const initialMockState: MockState = {
     { id: 8, branchId: 4, productId: 2, stock: 11, updatedAt: isoDaysAgo(1) },
     { id: 9, branchId: 4, productId: 4, stock: 7, updatedAt: isoDaysAgo(0) },
     { id: 10, branchId: 5, productId: 5, stock: 29, updatedAt: isoDaysAgo(2) },
+  ],
+  inventoryMovements: [
+    { id: 1, inventoryId: 1, branchId: 1, productId: 1, type: "Entrada", quantity: 20, previousStock: 22, newStock: 42, reason: "Recepción de proveedor", user: "Ana Torres", createdAt: isoDaysAgo(0) },
+    { id: 2, inventoryId: 6, branchId: 3, productId: 3, type: "Salida", quantity: 4, previousStock: 12, newStock: 8, reason: "Venta V-0007", user: "Ana Torres", createdAt: isoDaysAgo(1) },
+    { id: 3, inventoryId: 9, branchId: 4, productId: 4, type: "Ajuste", quantity: 2, previousStock: 9, newStock: 7, reason: "Regularización por conteo físico", user: "Luis Mendoza", createdAt: isoDaysAgo(2) },
+    { id: 4, inventoryId: 7, branchId: 3, productId: 5, type: "Entrada", quantity: 15, previousStock: 49, newStock: 64, reason: "Reposición de inventario", user: "Ana Torres", createdAt: isoDaysAgo(3) },
   ],
   sales: [
     { id: 1, code: "V-0008", branchId: 1, productId: 1, quantity: 3, unitPrice: 3299, total: 9897, date: isoDaysAgo(0), status: "Completada" },

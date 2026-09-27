@@ -21,7 +21,7 @@ export default function Login() {
 
   return (
     <div className="grid min-h-screen bg-white lg:grid-cols-2">
-      <section className="relative hidden overflow-hidden bg-slate-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+      <section className="relative hidden overflow-hidden bg-slate-900 p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl" /><div className="absolute -bottom-32 left-20 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
         <div className="relative flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 text-xl font-black">M</div><div><p className="font-bold tracking-[0.16em]">MATRIXFLOW</p><p className="text-xs tracking-[0.24em] text-cyan-400">ENTERPRISE</p></div></div>
         <div className="relative max-w-xl"><div className="mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/15 text-cyan-300"><BarChart3 size={25} /></div><h1 className="text-4xl font-bold leading-tight">Convierte tus datos empresariales en decisiones medibles.</h1><p className="mt-5 text-lg leading-8 text-slate-300">Analiza ventas, inventario y metas mediante vectores, matrices e indicadores centralizados.</p><div className="mt-10 grid grid-cols-3 gap-4">{["5 sucursales", "Análisis matricial", "Datos trazables"].map((item) => <div key={item} className="rounded-xl border border-slate-700 bg-white/5 p-4 text-sm text-slate-200">{item}</div>)}</div></div>

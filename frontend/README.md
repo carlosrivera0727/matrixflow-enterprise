@@ -28,10 +28,10 @@ npm run build
 - Login y sesión local de demostración.
 - Layout responsive, navegación móvil y rutas protegidas.
 - Dashboard con indicadores y gráficos.
-- Perfil de empresa y CRUD visual de sucursales, productos y usuarios.
-- Registro de ventas con actualización de inventario.
+- CRUD visual de empresas, sucursales, productos y usuarios.
+- Registro de ventas con actualización de inventario y trazabilidad de movimientos.
 - Gestión y edición de vectores y matrices.
-- Operaciones vectoriales y matriciales con validación de dimensiones.
+- Operaciones vectoriales y matriciales, incluida una pantalla propia de combinaciones lineales, con validación de dimensiones.
 - Historial de cálculos, reportes y exportación CSV.
 - Configuración y restauración de datos simulados.
 

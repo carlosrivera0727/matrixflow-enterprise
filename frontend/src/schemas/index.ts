@@ -5,11 +5,27 @@ export const loginSchema = z.object({
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 });
 
+export const companySchema = z.object({
+  name: z.string().min(3, "Ingresa la razón social"),
+  taxId: z.string().regex(/^\d{11}$/, "El RUC debe contener 11 dígitos"),
+  sector: z.string().min(3, "Ingresa el sector"),
+  email: z.string().email("Ingresa un correo válido"),
+  phone: z.string().min(7, "Ingresa un teléfono válido"),
+  address: z.string().min(5, "Ingresa una dirección válida"),
+  status: z.enum(["Activa", "Inactiva"]),
+});
+
 export const branchSchema = z.object({
+  companyId: z.number().int().positive("Selecciona una empresa"),
   name: z.string().min(3, "Ingresa el nombre de la sucursal"),
   city: z.string().min(2, "Ingresa la ciudad"),
   address: z.string().min(5, "Ingresa una dirección válida"),
   status: z.enum(["Activa", "Inactiva"]),
+});
+
+export const inventoryAdjustmentSchema = z.object({
+  stock: z.number().int().min(0, "El stock no puede ser negativo"),
+  reason: z.string().min(5, "Describe el motivo del movimiento"),
 });
 
 export const productSchema = z.object({
@@ -44,7 +60,9 @@ export const userSchema = z.object({
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
+export type CompanyFormData = z.infer<typeof companySchema>;
 export type BranchFormData = z.infer<typeof branchSchema>;
+export type InventoryAdjustmentFormData = z.infer<typeof inventoryAdjustmentSchema>;
 export type ProductFormData = z.infer<typeof productSchema>;
 export type SaleFormData = z.infer<typeof saleSchema>;
 export type VectorFormData = z.infer<typeof vectorSchema>;

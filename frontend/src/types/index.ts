@@ -1,16 +1,19 @@
 export type Role = "Administrador" | "Analista" | "Consulta";
 
 export interface CompanyProfile {
+  id: number;
   name: string;
   taxId: string;
   sector: string;
   email: string;
   phone: string;
   address: string;
+  status: "Activa" | "Inactiva";
 }
 
 export interface Branch {
   id: number;
+  companyId: number;
   name: string;
   city: string;
   address: string;
@@ -45,6 +48,20 @@ export interface InventoryItem {
   productId: number;
   stock: number;
   updatedAt: string;
+}
+
+export interface InventoryMovement {
+  id: number;
+  inventoryId: number;
+  branchId: number;
+  productId: number;
+  type: "Entrada" | "Salida" | "Ajuste";
+  quantity: number;
+  previousStock: number;
+  newStock: number;
+  reason: string;
+  user: string;
+  createdAt: string;
 }
 
 export interface VectorRecord {
@@ -91,11 +108,12 @@ export interface AppSettings {
 }
 
 export interface MockState {
-  company: CompanyProfile;
+  companies: CompanyProfile[];
   branches: Branch[];
   products: Product[];
   sales: Sale[];
   inventory: InventoryItem[];
+  inventoryMovements: InventoryMovement[];
   vectors: VectorRecord[];
   matrices: MatrixRecord[];
   operations: OperationRecord[];

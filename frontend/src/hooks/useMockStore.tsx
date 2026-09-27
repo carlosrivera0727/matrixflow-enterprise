@@ -5,6 +5,7 @@ import type {
   AppSettings,
   Branch,
   CompanyProfile,
+  InventoryMovement,
   MatrixRecord,
   MockState,
   OperationRecord,
@@ -17,13 +18,14 @@ import type {
 type WithoutId<T> = Omit<T, "id">;
 
 interface MockStoreValue extends MockState {
-  updateCompany: (company: CompanyProfile) => void;
+  saveCompany: (company: WithoutId<CompanyProfile> & { id?: number }) => void;
+  removeCompany: (id: number) => boolean;
   saveBranch: (branch: WithoutId<Branch> & { id?: number }) => void;
   removeBranch: (id: number) => boolean;
   saveProduct: (product: WithoutId<Product> & { id?: number }) => void;
   removeProduct: (id: number) => boolean;
   addSale: (sale: Pick<Sale, "branchId" | "productId" | "quantity">) => { ok: boolean; message: string };
-  adjustInventory: (id: number, stock: number) => void;
+  adjustInventory: (id: number, stock: number, reason: string, user: string) => void;
   saveVector: (vector: WithoutId<VectorRecord> & { id?: number }) => void;
   removeVector: (id: number) => void;
   saveMatrix: (matrix: WithoutId<MatrixRecord> & { id?: number }) => void;
@@ -43,7 +45,23 @@ function loadInitialState(): MockState {
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (!stored) return initialMockState;
   try {
-    return JSON.parse(stored) as MockState;
+    const parsed = JSON.parse(stored) as Partial<MockState> & {
+      company?: Omit<CompanyProfile, "id" | "status">;
+    };
+    const companies = parsed.companies ?? (parsed.company
+      ? [{ ...parsed.company, id: 1, status: "Activa" as const }]
+      : initialMockState.companies);
+    const branches = (parsed.branches ?? initialMockState.branches).map((branch) => ({
+      ...branch,
+      companyId: branch.companyId ?? companies[0]?.id ?? 1,
+    }));
+    return {
+      ...initialMockState,
+      ...parsed,
+      companies,
+      branches,
+      inventoryMovements: parsed.inventoryMovements ?? initialMockState.inventoryMovements,
+    };
   } catch {
     return initialMockState;
   }
@@ -58,7 +76,17 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<MockStoreValue>(() => ({
     ...state,
-    updateCompany: (company) => setState((current) => ({ ...current, company })),
+    saveCompany: (company) => setState((current) => ({
+      ...current,
+      companies: company.id
+        ? current.companies.map((item) => item.id === company.id ? { ...item, ...company } as CompanyProfile : item)
+        : [...current.companies, { ...company, id: nextId(current.companies) } as CompanyProfile],
+    })),
+    removeCompany: (id) => {
+      if (state.branches.some((branch) => branch.companyId === id)) return false;
+      setState((current) => ({ ...current, companies: current.companies.filter((item) => item.id !== id) }));
+      return true;
+    },
     saveBranch: (branch) => setState((current) => ({
       ...current,
       branches: branch.id
@@ -104,15 +132,48 @@ export function MockStoreProvider({ children }: { children: ReactNode }) {
         inventory: current.inventory.map((item) => item.id === inventoryItem.id
           ? { ...item, stock: item.stock - quantity, updatedAt: new Date().toISOString() }
           : item),
+        inventoryMovements: [{
+          id: nextId(current.inventoryMovements),
+          inventoryId: inventoryItem.id,
+          branchId,
+          productId,
+          type: "Salida",
+          quantity,
+          previousStock: inventoryItem.stock,
+          newStock: inventoryItem.stock - quantity,
+          reason: `Venta ${sale.code}`,
+          user: "Sistema de ventas",
+          createdAt: sale.date,
+        } as InventoryMovement, ...current.inventoryMovements],
       }));
       return { ok: true, message: `Venta ${sale.code} registrada correctamente.` };
     },
-    adjustInventory: (id, stock) => setState((current) => ({
-      ...current,
-      inventory: current.inventory.map((item) => item.id === id
-        ? { ...item, stock: Math.max(0, stock), updatedAt: new Date().toISOString() }
-        : item),
-    })),
+    adjustInventory: (id, stock, reason, user) => setState((current) => {
+      const item = current.inventory.find((inventoryItem) => inventoryItem.id === id);
+      if (!item) return current;
+      const safeStock = Math.max(0, stock);
+      const createdAt = new Date().toISOString();
+      const movement: InventoryMovement = {
+        id: nextId(current.inventoryMovements),
+        inventoryId: item.id,
+        branchId: item.branchId,
+        productId: item.productId,
+        type: "Ajuste",
+        quantity: Math.abs(safeStock - item.stock),
+        previousStock: item.stock,
+        newStock: safeStock,
+        reason,
+        user,
+        createdAt,
+      };
+      return {
+        ...current,
+        inventory: current.inventory.map((inventoryItem) => inventoryItem.id === id
+          ? { ...inventoryItem, stock: safeStock, updatedAt: createdAt }
+          : inventoryItem),
+        inventoryMovements: [movement, ...current.inventoryMovements],
+      };
+    }),
     saveVector: (vector) => setState((current) => ({
       ...current,
       vectors: vector.id

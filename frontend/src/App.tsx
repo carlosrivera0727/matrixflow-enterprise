@@ -5,6 +5,7 @@ import { useAuth } from "./hooks/useAuth";
 
 const Login = lazy(() => import("./pages/auth/Login"));
 const Configuracion = lazy(() => import("./pages/configuracion/Configuracion"));
+const CombinacionesLineales = lazy(() => import("./pages/matematico/CombinacionesLineales"));
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Empresa = lazy(() => import("./pages/empresa/Empresa"));
 const Productos = lazy(() => import("./pages/empresa/Productos"));
@@ -48,6 +49,7 @@ export default function App() {
             <Route path="/vectores" element={<Vectores />} />
             <Route path="/matrices" element={<Matrices />} />
             <Route path="/operaciones" element={<Operaciones />} />
+            <Route path="/combinaciones-lineales" element={<CombinacionesLineales />} />
             <Route path="/historial" element={<Historial />} />
             <Route path="/reportes" element={<Reportes />} />
             <Route path="/usuarios" element={<Usuarios />} />

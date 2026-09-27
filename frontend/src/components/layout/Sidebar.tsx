@@ -1,4 +1,4 @@
-import { BarChart3, Building2, Calculator, ChevronRight, FileClock, LayoutDashboard, LogOut, Package, Settings, ShoppingCart, Sigma, Table2, Users, Warehouse, X, type LucideIcon } from "lucide-react";
+import { BarChart3, Building2, Calculator, ChevronRight, FileClock, GitMerge, LayoutDashboard, LogOut, Package, Settings, ShoppingCart, Sigma, Table2, Users, Warehouse, X, type LucideIcon } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -18,6 +18,7 @@ const groups: { label: string; items: MenuItem[] }[] = [
     { label: "Vectores", path: "/vectores", icon: Sigma },
     { label: "Matrices", path: "/matrices", icon: Calculator },
     { label: "Operaciones", path: "/operaciones", icon: ChevronRight },
+    { label: "Combinaciones lineales", path: "/combinaciones-lineales", icon: GitMerge },
   ] },
   { label: "GESTIÓN", items: [
     { label: "Historial", path: "/historial", icon: FileClock },
@@ -32,7 +33,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   return (
     <>
       {open && <button className="fixed inset-0 z-40 bg-slate-950/50 lg:hidden" onClick={onClose} aria-label="Cerrar navegación" />}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-slate-950 text-white transition-transform duration-200 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-slate-900 text-white transition-transform duration-200 lg:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-16 items-center gap-3 border-b border-slate-800 px-5">
           <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 font-black">M</div>
           <div><h1 className="text-sm font-bold tracking-[0.14em]">MATRIXFLOW</h1><p className="text-[10px] font-semibold tracking-[0.22em] text-cyan-400">ENTERPRISE</p></div>
@@ -52,7 +53,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           ))}
         </nav>
         <div className="border-t border-slate-800 p-3">
-          <div className="mb-2 flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2.5 text-xs text-slate-300"><span className="h-2 w-2 rounded-full bg-emerald-400" />Datos simulados activos</div>
+          <div className="mb-2 flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-2.5 text-xs text-slate-300"><span className="h-2 w-2 rounded-full bg-emerald-400" />Datos simulados activos</div>
           <button onClick={logout} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-slate-800 hover:text-white"><LogOut size={18} />Cerrar sesión</button>
         </div>
       </aside>
