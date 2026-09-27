@@ -5,5 +5,5 @@ def login_user(data: LoginRequest):
     return {
         "status": "ok",
         "message": "Servicio de login preparado",
-        "username": data.username,
+        "email": str(data.email),
     }

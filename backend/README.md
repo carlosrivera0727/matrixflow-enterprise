@@ -68,3 +68,12 @@ Reglas de dependencia:
 - Los repositorios contienen las consultas SQLAlchemy y nunca confirman transacciones.
 - Los algoritmos no dependen de FastAPI, SQLAlchemy ni Pydantic.
 - Los modelos no importan routers, servicios ni repositorios.
+
+## Contratos Pydantic
+
+- El código Python usa nombres `snake_case` y la API expone alias `camelCase` compatibles con React.
+- Los modelos de creación, actualización y respuesta están separados.
+- Los modelos de respuesta admiten entidades SQLAlchemy mediante `from_attributes`.
+- Los cuerpos desconocidos se rechazan para evitar datos ignorados accidentalmente.
+- Los modelos de actualización exigen al menos un campo.
+- RUC, correo, teléfono, precios, cantidades, stock, vectores, matrices y operaciones incluyen validaciones específicas.
