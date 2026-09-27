@@ -58,3 +58,23 @@ def require_roles(
         return current_user
 
     return verify_role
+
+
+AdministratorUser = Annotated[
+    AuthenticatedUser,
+    Depends(require_roles(UserRole.ADMINISTRATOR)),
+]
+BusinessUser = Annotated[
+    AuthenticatedUser,
+    Depends(require_roles(UserRole.ADMINISTRATOR, UserRole.ANALYST)),
+]
+ReportUser = Annotated[
+    AuthenticatedUser,
+    Depends(
+        require_roles(
+            UserRole.ADMINISTRATOR,
+            UserRole.ANALYST,
+            UserRole.READ_ONLY,
+        )
+    ),
+]

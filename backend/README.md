@@ -67,6 +67,19 @@ Authorization: Bearer <accessToken>
 
 `GET /api/v1/auth/me` devuelve el usuario de la sesión. En cada solicitud se comprueba que el usuario continúe registrado y activo. La función `require_roles` permite limitar endpoints a uno o más roles.
 
+## API REST
+
+Los módulos empresariales están disponibles bajo `/api/v1`:
+
+- `/users`, `/companies`, `/branches` y `/products`: consulta y CRUD administrativo.
+- `/sales`: registro y consulta de ventas.
+- `/inventory` y `/inventory/movements`: existencias, ajustes y trazabilidad.
+- `/vectors` y `/matrices`: CRUD de estructuras matemáticas.
+- `/operations`: ejecución e historial de operaciones.
+- `/reports`: indicadores agregados.
+
+Las respuestas usan campos `camelCase`, los listados aceptan paginación y los errores esperados devuelven códigos HTTP `404`, `409`, `401` o `403`. La ejecución de `POST /operations` se habilitará al incorporar el motor NumPy en la siguiente etapa.
+
 ## Arquitectura
 
 ```text

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TypeAlias
 
-from pydantic import Field, model_validator
+from pydantic import AliasChoices, Field, model_validator
 
 from app.schemas.common import (
     APIModel,
@@ -81,7 +81,10 @@ class OperationCreate(APIModel):
 
 class OperationResponse(APIModel):
     id: PositiveId
-    operation_type: OperationType
+    operation_type: OperationType = Field(
+        validation_alias=AliasChoices("operationType", "type"),
+        serialization_alias="type",
+    )
     category: OperationCategory
     inputs: str = Field(min_length=1, max_length=500)
     result: OperationResult

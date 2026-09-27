@@ -38,3 +38,6 @@ class BaseService:
         except SQLAlchemyError as exc:
             self.session.rollback()
             raise PersistenceError("No se pudo guardar la transacción.") from exc
+        except Exception:
+            self.session.rollback()
+            raise
