@@ -1,0 +1,290 @@
+"""Create the initial MatrixFlow Enterprise schema.
+
+Revision ID: 20260928_0001
+Revises:
+Create Date: 2026-09-28
+"""
+
+from collections.abc import Sequence
+
+from alembic import op
+import sqlalchemy as sa
+
+
+revision: str = "20260928_0001"
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
+
+
+def upgrade() -> None:
+    op.create_table(
+        "categories",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=100), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("name"),
+    )
+    op.create_index("ix_categories_id", "categories", ["id"], unique=False)
+
+    op.create_table(
+        "companies",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=150), nullable=False),
+        sa.Column("tax_id", sa.String(length=20), nullable=False),
+        sa.Column("sector", sa.String(length=100), nullable=False),
+        sa.Column("email", sa.String(length=255), nullable=False),
+        sa.Column("phone", sa.String(length=30), nullable=True),
+        sa.Column("address", sa.String(length=255), nullable=True),
+        sa.Column("status", sa.String(length=20), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("email"),
+        sa.UniqueConstraint("name"),
+        sa.UniqueConstraint("tax_id"),
+    )
+    op.create_index("ix_companies_id", "companies", ["id"], unique=False)
+
+    op.create_table(
+        "matrices",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=150), nullable=False),
+        sa.Column("description", sa.String(length=255), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index("ix_matrices_id", "matrices", ["id"], unique=False)
+
+    op.create_table(
+        "operations",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("category", sa.String(length=20), nullable=False),
+        sa.Column("operation_type", sa.String(length=100), nullable=False),
+        sa.Column("inputs", sa.String(length=255), nullable=False),
+        sa.Column("result", sa.JSON(), nullable=False),
+        sa.Column("user", sa.String(length=150), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("status", sa.String(length=30), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index("ix_operations_id", "operations", ["id"], unique=False)
+
+    op.create_table(
+        "roles",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=50), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("name"),
+    )
+    op.create_index("ix_roles_id", "roles", ["id"], unique=False)
+
+    op.create_table(
+        "vectors",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=150), nullable=False),
+        sa.Column("description", sa.String(length=255), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index("ix_vectors_id", "vectors", ["id"], unique=False)
+
+    op.create_table(
+        "branches",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("company_id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=150), nullable=False),
+        sa.Column("city", sa.String(length=100), nullable=False),
+        sa.Column("address", sa.String(length=255), nullable=True),
+        sa.Column("status", sa.String(length=20), nullable=False),
+        sa.ForeignKeyConstraint(["company_id"], ["companies.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index("ix_branches_id", "branches", ["id"], unique=False)
+
+    op.create_table(
+        "matrix_values",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("matrix_id", sa.Integer(), nullable=False),
+        sa.Column("row_index", sa.Integer(), nullable=False),
+        sa.Column("column_index", sa.Integer(), nullable=False),
+        sa.Column("value", sa.Float(), nullable=False),
+        sa.ForeignKeyConstraint(["matrix_id"], ["matrices.id"]),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint(
+            "matrix_id",
+            "row_index",
+            "column_index",
+            name="uq_matrix_position",
+        ),
+    )
+
+    op.create_table(
+        "operation_inputs",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("operation_id", sa.Integer(), nullable=False),
+        sa.Column("input_type", sa.String(length=30), nullable=False),
+        sa.Column("input_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(["operation_id"], ["operations.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+
+    op.create_table(
+        "operation_results",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("operation_id", sa.Integer(), nullable=False),
+        sa.Column("result_value", sa.Double(), nullable=False),
+        sa.ForeignKeyConstraint(["operation_id"], ["operations.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+
+    op.create_table(
+        "products",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("sku", sa.String(length=50), nullable=False),
+        sa.Column("category_id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=150), nullable=False),
+        sa.Column("price", sa.Float(), nullable=False),
+        sa.Column("minimum_stock", sa.Integer(), nullable=False),
+        sa.Column("status", sa.String(length=20), nullable=False),
+        sa.ForeignKeyConstraint(["category_id"], ["categories.id"]),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("sku"),
+    )
+    op.create_index("ix_products_id", "products", ["id"], unique=False)
+
+    op.create_table(
+        "targets",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("branch_id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=150), nullable=False),
+        sa.Column("target_value", sa.Numeric(precision=12, scale=2), nullable=False),
+        sa.ForeignKeyConstraint(["branch_id"], ["branches.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+
+    op.create_table(
+        "users",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("name", sa.String(length=150), nullable=False),
+        sa.Column("email", sa.String(length=255), nullable=False),
+        sa.Column("password_hash", sa.String(length=255), nullable=False),
+        sa.Column("role_id", sa.Integer(), nullable=False),
+        sa.Column("status", sa.String(length=20), nullable=False),
+        sa.ForeignKeyConstraint(["role_id"], ["roles.id"]),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("email"),
+    )
+    op.create_index("ix_users_id", "users", ["id"], unique=False)
+
+    op.create_table(
+        "vector_values",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("vector_id", sa.Integer(), nullable=False),
+        sa.Column("position", sa.Integer(), nullable=False),
+        sa.Column("value", sa.Float(), nullable=False),
+        sa.ForeignKeyConstraint(["vector_id"], ["vectors.id"]),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("vector_id", "position", name="uq_vector_position"),
+    )
+
+    op.create_table(
+        "audit_logs",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=True),
+        sa.Column("action", sa.String(length=100), nullable=False),
+        sa.Column("entity", sa.String(length=100), nullable=False),
+        sa.Column("details", sa.Text(), nullable=True),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+
+    op.create_table(
+        "inventory",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("product_id", sa.Integer(), nullable=False),
+        sa.Column("branch_id", sa.Integer(), nullable=False),
+        sa.Column("quantity", sa.Integer(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+        sa.ForeignKeyConstraint(["branch_id"], ["branches.id"]),
+        sa.ForeignKeyConstraint(["product_id"], ["products.id"]),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint(
+            "branch_id",
+            "product_id",
+            name="uq_inventory_branch_product",
+        ),
+    )
+
+    op.create_table(
+        "sales",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("code", sa.String(length=40), nullable=False),
+        sa.Column("branch_id", sa.Integer(), nullable=False),
+        sa.Column("sale_date", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("total", sa.Float(), nullable=False),
+        sa.Column("status", sa.String(length=20), nullable=False),
+        sa.ForeignKeyConstraint(["branch_id"], ["branches.id"]),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("code"),
+    )
+    op.create_index("ix_sales_id", "sales", ["id"], unique=False)
+
+    op.create_table(
+        "inventory_movements",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("inventory_id", sa.Integer(), nullable=False),
+        sa.Column("movement_type", sa.String(length=20), nullable=False),
+        sa.Column("quantity", sa.Integer(), nullable=False),
+        sa.Column("previous_stock", sa.Integer(), nullable=False),
+        sa.Column("new_stock", sa.Integer(), nullable=False),
+        sa.Column("reason", sa.String(length=255), nullable=False),
+        sa.Column("user", sa.String(length=150), nullable=False),
+        sa.Column("movement_date", sa.DateTime(timezone=True), nullable=False),
+        sa.ForeignKeyConstraint(["inventory_id"], ["inventory.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+
+    op.create_table(
+        "sale_details",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("sale_id", sa.Integer(), nullable=False),
+        sa.Column("product_id", sa.Integer(), nullable=False),
+        sa.Column("quantity", sa.Integer(), nullable=False),
+        sa.Column("unit_price", sa.Float(), nullable=False),
+        sa.Column("subtotal", sa.Float(), nullable=False),
+        sa.ForeignKeyConstraint(["product_id"], ["products.id"]),
+        sa.ForeignKeyConstraint(["sale_id"], ["sales.id"]),
+        sa.PrimaryKeyConstraint("id"),
+    )
+
+
+def downgrade() -> None:
+    op.drop_table("sale_details")
+    op.drop_table("inventory_movements")
+    op.drop_index("ix_sales_id", table_name="sales")
+    op.drop_table("sales")
+    op.drop_table("inventory")
+    op.drop_table("audit_logs")
+    op.drop_table("vector_values")
+    op.drop_index("ix_users_id", table_name="users")
+    op.drop_table("users")
+    op.drop_table("targets")
+    op.drop_index("ix_products_id", table_name="products")
+    op.drop_table("products")
+    op.drop_table("operation_results")
+    op.drop_table("operation_inputs")
+    op.drop_table("matrix_values")
+    op.drop_index("ix_branches_id", table_name="branches")
+    op.drop_table("branches")
+    op.drop_index("ix_vectors_id", table_name="vectors")
+    op.drop_table("vectors")
+    op.drop_index("ix_roles_id", table_name="roles")
+    op.drop_table("roles")
+    op.drop_index("ix_operations_id", table_name="operations")
+    op.drop_table("operations")
+    op.drop_index("ix_matrices_id", table_name="matrices")
+    op.drop_table("matrices")
+    op.drop_index("ix_companies_id", table_name="companies")
+    op.drop_table("companies")
+    op.drop_index("ix_categories_id", table_name="categories")
+    op.drop_table("categories")

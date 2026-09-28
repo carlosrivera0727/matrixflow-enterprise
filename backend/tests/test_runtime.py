@@ -101,3 +101,25 @@ def test_relative_sqlite_database_is_anchored_to_backend() -> None:
     assert local_settings.database_url == (
         f"sqlite:///{(BACKEND_DIR / 'verification.db').resolve().as_posix()}"
     )
+
+
+@pytest.mark.parametrize(
+    ("database_url", "expected"),
+    [
+        (
+            "postgres://user:secret@db.example.com:5432/matrixflow",
+            "postgresql+psycopg://user:secret@db.example.com:5432/matrixflow",
+        ),
+        (
+            "postgresql://user:secret@db.example.com:5432/matrixflow",
+            "postgresql+psycopg://user:secret@db.example.com:5432/matrixflow",
+        ),
+    ],
+)
+def test_postgresql_urls_use_the_installed_psycopg_driver(
+    database_url: str,
+    expected: str,
+) -> None:
+    local_settings = Settings(_env_file=None, database_url=database_url)
+
+    assert local_settings.database_url == expected

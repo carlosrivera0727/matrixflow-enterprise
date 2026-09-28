@@ -1,6 +1,8 @@
 from pathlib import Path
 
 import pytest
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import String, create_engine
 from sqlalchemy.orm import Mapped, Session, mapped_column
@@ -15,6 +17,14 @@ class RepositoryProbe(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
+
+
+def test_alembic_has_a_single_initial_head() -> None:
+    backend_directory = Path(__file__).parents[1]
+    config = Config(str(backend_directory / "alembic.ini"))
+    scripts = ScriptDirectory.from_config(config)
+
+    assert scripts.get_heads() == ["20260928_0001"]
 
 
 @pytest.fixture

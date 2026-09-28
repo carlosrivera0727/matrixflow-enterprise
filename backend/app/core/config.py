@@ -46,14 +46,18 @@ class Settings(BaseSettings):
 
     @field_validator("database_url")
     @classmethod
-    def resolve_relative_sqlite_path(cls, value: str) -> str:
-        """Keep the local database in backend regardless of the launch directory."""
+    def normalize_database_url(cls, value: str) -> str:
+        """Normalize supported database URLs for local and hosted environments."""
 
         prefix = "sqlite:///./"
         if value.startswith(prefix):
             relative_path = value.removeprefix(prefix)
             database_path = (BACKEND_DIR / relative_path).resolve()
             return f"sqlite:///{database_path.as_posix()}"
+        if value.startswith("postgres://"):
+            return value.replace("postgres://", "postgresql+psycopg://", 1)
+        if value.startswith("postgresql://"):
+            return value.replace("postgresql://", "postgresql+psycopg://", 1)
         return value
 
     @model_validator(mode="after")

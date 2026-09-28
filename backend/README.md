@@ -50,6 +50,52 @@ python -m pytest -q
 
 Copia `.env.example` como `.env` y ajusta los valores. El archivo `.env` real está excluido de Git. Nunca se debe publicar `JWT_SECRET_KEY` de producción.
 
+## Base de datos y migraciones
+
+El desarrollo local conserva SQLite para que Swagger funcione sin instalar un
+servidor adicional. La migración inicial de Alembic crea las 19 tablas del
+modelo y es compatible tanto con SQLite como con PostgreSQL.
+
+Para preparar una base nueva desde la carpeta `backend`:
+
+```powershell
+alembic upgrade head
+python -m app.seed
+alembic current
+```
+
+`python -m app.seed` registra de forma idempotente los tres usuarios de
+demostración; puede ejecutarse más de una vez sin duplicarlos.
+
+Para PostgreSQL o Supabase configura la conexión en `.env` y desactiva la
+creación automática de tablas:
+
+```dotenv
+ENVIRONMENT="production"
+DATABASE_URL="postgresql+psycopg://usuario:clave@host:5432/matrixflow?sslmode=require"
+AUTO_CREATE_TABLES=false
+SEED_DEMO_USERS=false
+```
+
+Después ejecuta `alembic upgrade head` antes de iniciar Uvicorn. Las URLs que
+comienzan con `postgres://` o `postgresql://` también se normalizan al
+controlador `psycopg` instalado por el proyecto.
+
+Si `matrixflow.db` ya fue creado por una versión anterior mediante
+`create_all`, sus tablas corresponden al mismo modelo. No vuelvas a crearlas:
+respalda el archivo y registra la revisión con `alembic stamp head`. Para una
+instalación evaluable desde cero, se recomienda una base vacía y
+`alembic upgrade head`.
+
+Comandos útiles:
+
+```powershell
+alembic history
+alembic current
+alembic check
+alembic downgrade base  # sólo para una base de prueba desechable
+```
+
 ## Autenticación
 
 El inicio de sesión valida usuarios almacenados en la base de datos y devuelve un JWT:
