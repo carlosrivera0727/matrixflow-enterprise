@@ -1,13 +1,27 @@
-from pydantic import BaseModel
+from pydantic import EmailStr, Field
+
+from app.schemas.common import APIModel, PositiveId, RecordStatus, UpdateModel, UserRole
 
 
-class UserCreate(BaseModel):
-    username: str
-    password: str
-    role: str
+class UserCreate(APIModel):
+    name: str = Field(min_length=3, max_length=150)
+    email: EmailStr
+    password: str = Field(min_length=6, max_length=128)
+    role: UserRole
+    status: RecordStatus = RecordStatus.ACTIVE
 
 
-class UserResponse(BaseModel):
-    id: int
-    username: str
-    role: str
+class UserUpdate(UpdateModel):
+    name: str | None = Field(default=None, min_length=3, max_length=150)
+    email: EmailStr | None = None
+    password: str | None = Field(default=None, min_length=6, max_length=128)
+    role: UserRole | None = None
+    status: RecordStatus | None = None
+
+
+class UserResponse(APIModel):
+    id: PositiveId
+    name: str = Field(min_length=3, max_length=150)
+    email: EmailStr
+    role: UserRole
+    status: RecordStatus

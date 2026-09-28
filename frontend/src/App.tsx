@@ -1,171 +1,63 @@
-import {
-  BrowserRouter,
-  Navigate,
-  Route,
-  Routes,
-} from "react-router-dom";
-
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import MainLayout from "./components/layout/MainLayout";
+import { useAuth } from "./hooks/useAuth";
 
-import Login from "./pages/auth/Login";
-import Dashboard from "./pages/dashboard/Dashboard";
+const Login = lazy(() => import("./pages/auth/Login"));
+const Configuracion = lazy(() => import("./pages/configuracion/Configuracion"));
+const CombinacionesLineales = lazy(() => import("./pages/matematico/CombinacionesLineales"));
+const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
+const Empresa = lazy(() => import("./pages/empresa/Empresa"));
+const Productos = lazy(() => import("./pages/empresa/Productos"));
+const Sucursales = lazy(() => import("./pages/empresa/Sucursales"));
+const Historial = lazy(() => import("./pages/historial/Historial"));
+const Inventario = lazy(() => import("./pages/inventario/Inventario"));
+const Matrices = lazy(() => import("./pages/matematico/Matrices"));
+const Operaciones = lazy(() => import("./pages/matematico/Operaciones"));
+const Vectores = lazy(() => import("./pages/matematico/Vectores"));
+const Reportes = lazy(() => import("./pages/reportes/Reportes"));
+const Usuarios = lazy(() => import("./pages/usuarios/Usuarios"));
+const Ventas = lazy(() => import("./pages/ventas/Ventas"));
 
-import Empresa from "./pages/empresa/Empresa";
-import Sucursales from "./pages/empresa/Sucursales";
-import Productos from "./pages/empresa/Productos";
+function PageLoader() {
+  return <div className="grid min-h-[calc(100vh-4rem)] place-items-center bg-slate-50"><div className="flex items-center gap-3 text-sm font-medium text-slate-500"><span className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />Cargando módulo...</div></div>;
+}
 
-import Ventas from "./pages/ventas/Ventas";
-import Inventario from "./pages/inventario/Inventario";
+function ProtectedRoute() {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+}
 
-import Vectores from "./pages/matematico/Vectores";
-import Matrices from "./pages/matematico/Matrices";
-import Operaciones from "./pages/matematico/Operaciones";
+function LoginRoute() {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />;
+}
 
-import Historial from "./pages/historial/Historial";
-import Reportes from "./pages/reportes/Reportes";
-import Usuarios from "./pages/usuarios/Usuarios";
-import Configuracion from "./pages/configuracion/Configuracion";
-
-function App() {
+export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Autenticación */}
-        <Route path="/login" element={<Login />} />
-
-        {/* Dashboard */}
-        <Route
-          path="/dashboard"
-          element={
-            <MainLayout>
-              <Dashboard />
-            </MainLayout>
-          }
-        />
-
-        {/* Empresa */}
-        <Route
-          path="/empresa"
-          element={
-            <MainLayout>
-              <Empresa />
-            </MainLayout>
-          }
-        />
-
-        <Route
-          path="/sucursales"
-          element={
-            <MainLayout>
-              <Sucursales />
-            </MainLayout>
-          }
-        />
-
-        <Route
-          path="/productos"
-          element={
-            <MainLayout>
-              <Productos />
-            </MainLayout>
-          }
-        />
-
-        {/* Operaciones */}
-        <Route
-          path="/ventas"
-          element={
-            <MainLayout>
-              <Ventas />
-            </MainLayout>
-          }
-        />
-
-        <Route
-          path="/inventario"
-          element={
-            <MainLayout>
-              <Inventario />
-            </MainLayout>
-          }
-        />
-
-        {/* Análisis matemático */}
-        <Route
-          path="/vectores"
-          element={
-            <MainLayout>
-              <Vectores />
-            </MainLayout>
-          }
-        />
-
-        <Route
-          path="/matrices"
-          element={
-            <MainLayout>
-              <Matrices />
-            </MainLayout>
-          }
-        />
-
-        <Route
-          path="/operaciones"
-          element={
-            <MainLayout>
-              <Operaciones />
-            </MainLayout>
-          }
-        />
-
-        {/* Historial */}
-        <Route
-          path="/historial"
-          element={
-            <MainLayout>
-              <Historial />
-            </MainLayout>
-          }
-        />
-
-        {/* Reportes */}
-        <Route
-          path="/reportes"
-          element={
-            <MainLayout>
-              <Reportes />
-            </MainLayout>
-          }
-        />
-
-        {/* Usuarios */}
-        <Route
-          path="/usuarios"
-          element={
-            <MainLayout>
-              <Usuarios />
-            </MainLayout>
-          }
-        />
-
-        {/* Configuración */}
-        <Route
-          path="/configuracion"
-          element={
-            <MainLayout>
-              <Configuracion />
-            </MainLayout>
-          }
-        />
-
-        {/* Ruta por defecto */}
-        <Route
-          path="*"
-          element={<Navigate to="/dashboard" replace />}
-        />
-      </Routes>
+      <Suspense fallback={<PageLoader />}><Routes>
+        <Route path="/login" element={<LoginRoute />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/empresa" element={<Empresa />} />
+            <Route path="/sucursales" element={<Sucursales />} />
+            <Route path="/productos" element={<Productos />} />
+            <Route path="/ventas" element={<Ventas />} />
+            <Route path="/inventario" element={<Inventario />} />
+            <Route path="/vectores" element={<Vectores />} />
+            <Route path="/matrices" element={<Matrices />} />
+            <Route path="/operaciones" element={<Operaciones />} />
+            <Route path="/combinaciones-lineales" element={<CombinacionesLineales />} />
+            <Route path="/historial" element={<Historial />} />
+            <Route path="/reportes" element={<Reportes />} />
+            <Route path="/usuarios" element={<Usuarios />} />
+            <Route path="/configuracion" element={<Configuracion />} />
+          </Route>
+        </Route>
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes></Suspense>
     </BrowserRouter>
   );
 }
-
-export default App;

@@ -1,75 +1,40 @@
-# React + TypeScript + Vite
+# MatrixFlow Enterprise - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend de la Fase 1 del plan maestro de MatrixFlow Enterprise. Está construido con React, TypeScript, Vite y Tailwind CSS, y utiliza datos simulados persistidos en `localStorage` hasta que se complete la integración con FastAPI.
 
-Currently, two official plugins are available:
+## Ejecución
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Para validar una entrega:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm run lint
+npm run build
 ```
+
+## Acceso de demostración
+
+- Administrador: `admin@matrixflow.pe`
+- Analista: `analista@matrixflow.pe`
+- Consulta: `consulta@matrixflow.pe`
+- Contraseña para los tres perfiles: `demo123`
+
+## Módulos incluidos
+
+- Login y sesión local de demostración.
+- Layout responsive, navegación móvil y rutas protegidas.
+- Dashboard con indicadores y gráficos.
+- CRUD visual de empresas, sucursales, productos y usuarios.
+- Registro de ventas con actualización de inventario y trazabilidad de movimientos.
+- Gestión y edición de vectores y matrices.
+- Operaciones vectoriales y matriciales, incluida una pantalla propia de combinaciones lineales, con validación de dimensiones.
+- Historial de cálculos, reportes y exportación CSV.
+- Configuración y restauración de datos simulados.
+
+## Integración futura
+
+El cliente HTTP está preparado en `src/services/api/client.ts`. Define `VITE_API_URL` cuando la API FastAPI esté disponible. Los cálculos que actualmente se simulan en React deben delegarse al motor Python + NumPy durante las fases 4 y 5.

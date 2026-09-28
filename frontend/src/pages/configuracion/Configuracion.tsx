@@ -1,41 +1,22 @@
+import { Database, RefreshCcw, Save, Server, SlidersHorizontal } from "lucide-react";
+import { useState } from "react";
 import PageHeader from "../../components/common/PageHeader";
+import { useMockStore } from "../../hooks/useMockStore";
+import type { AppSettings } from "../../types";
 
 export default function Configuracion() {
+  const { settings, updateSettings, resetDemo } = useMockStore();
+  const [form, setForm] = useState<AppSettings>(settings);
+  const [saved, setSaved] = useState(false);
+  const save = () => { updateSettings(form); setSaved(true); window.setTimeout(() => setSaved(false), 1800); };
+  const toggle = (field: "lowStockNotifications" | "compactTables") => setForm((current) => ({ ...current, [field]: !current[field] }));
   return (
-    <div className="min-h-screen bg-slate-50">
-      <PageHeader
-        eyebrow="Sistema"
-        title="Configuración"
-        description="Configuración general de MatrixFlow Enterprise."
-      />
-
-      <section className="p-8">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="font-semibold text-slate-900">
-            Configuración general
-          </h2>
-
-          <div className="mt-6 space-y-4">
-            <div className="rounded-lg bg-slate-50 p-4">
-              <p className="text-sm font-medium text-slate-900">
-                Versión del sistema
-              </p>
-              <p className="mt-1 text-sm text-slate-500">
-                MatrixFlow Enterprise v1.0
-              </p>
-            </div>
-
-            <div className="rounded-lg bg-slate-50 p-4">
-              <p className="text-sm font-medium text-slate-900">
-                Entorno
-              </p>
-              <p className="mt-1 text-sm text-slate-500">
-                Desarrollo
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+    <div>
+      <PageHeader eyebrow="Sistema" title="Configuración" description="Preferencias del entorno de demostración MatrixFlow." />
+      <section className="p-4 sm:p-6 lg:p-8"><div className="grid gap-6 xl:grid-cols-[1fr_340px]">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-blue-600"><SlidersHorizontal size={20} /></div><div><h2 className="font-semibold text-slate-950">Preferencias generales</h2><p className="text-sm text-slate-500">Personaliza la presentación de datos.</p></div></div><div className="mt-7 divide-y divide-slate-100"><div className="flex items-center justify-between gap-4 py-4"><div><p className="text-sm font-semibold text-slate-800">Moneda del sistema</p><p className="text-xs text-slate-500">Se aplica a indicadores y reportes.</p></div><select value={form.currency} onChange={(event) => setForm((current) => ({ ...current, currency: event.target.value as AppSettings["currency"] }))} className="rounded-xl border border-slate-300 px-3 py-2 text-sm"><option value="PEN">PEN · Soles</option><option value="USD">USD · Dólares</option></select></div>{[{ key: "lowStockNotifications" as const, title: "Alertas de stock bajo", description: "Destaca inventarios bajo el mínimo." }, { key: "compactTables" as const, title: "Tablas compactas", description: "Reduce el espaciado entre registros." }].map((item) => <div key={item.key} className="flex items-center justify-between gap-4 py-4"><div><p className="text-sm font-semibold text-slate-800">{item.title}</p><p className="text-xs text-slate-500">{item.description}</p></div><button onClick={() => toggle(item.key)} className={`relative h-7 w-12 rounded-full transition ${form[item.key] ? "bg-blue-600" : "bg-slate-300"}`} aria-pressed={form[item.key]}><span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition ${form[item.key] ? "left-6" : "left-1"}`} /></button></div>)}</div><div className="mt-6 flex items-center justify-end gap-3">{saved && <span className="text-sm font-medium text-emerald-600">Cambios guardados</span>}<button onClick={save} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white"><Save size={17} />Guardar preferencias</button></div></div>
+        <div className="space-y-5"><div className="rounded-2xl bg-slate-950 p-5 text-white"><div className="flex items-center gap-3"><Server className="text-cyan-400" size={21} /><h2 className="font-semibold">Entorno</h2></div><dl className="mt-5 space-y-3 text-sm"><div className="flex justify-between"><dt className="text-slate-400">Versión</dt><dd>1.0 · Fase 1</dd></div><div className="flex justify-between"><dt className="text-slate-400">Fuente de datos</dt><dd>Simulada</dd></div><div className="flex justify-between"><dt className="text-slate-400">API</dt><dd className="text-amber-300">Pendiente Fase 5</dd></div><div className="flex justify-between"><dt className="text-slate-400">Estado</dt><dd className="text-emerald-300">Operativo</dd></div></dl></div><div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-center gap-3"><Database className="text-blue-600" size={21} /><h2 className="font-semibold text-slate-900">Datos de demostración</h2></div><p className="mt-3 text-sm leading-6 text-slate-500">Restaura empresas, ventas, inventario, vectores y matrices a su estado inicial.</p><button onClick={() => { if (window.confirm("¿Restaurar todos los datos simulados?")) resetDemo(); }} className="mt-4 inline-flex items-center gap-2 rounded-xl border border-rose-200 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-50"><RefreshCcw size={16} />Restaurar datos</button></div></div>
+      </div></section>
     </div>
   );
 }

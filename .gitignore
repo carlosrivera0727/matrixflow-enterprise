@@ -5,7 +5,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 
-# Entorno virtual
+# Entorno virtual 
 .venv/
 venv/
 env/
@@ -42,7 +42,7 @@ build/
 Thumbs.db
 
 # =========================
-# Logs
+# Logs AAAAAAAA
 # =========================
 *.log
 #12421421dffefe
