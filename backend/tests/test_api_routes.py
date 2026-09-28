@@ -215,6 +215,34 @@ async def test_business_endpoints_complete_sale_and_reporting_flow(
             headers=headers,
             params={"inventoryId": inventory.json()["id"]},
         )
+        sale_detail = await client.get(
+            f"/api/v1/sales/{sale.json()['id']}",
+            headers=headers,
+        )
+        sales_list = await client.get("/api/v1/sales", headers=headers)
+        adjustment = await client.patch(
+            f"/api/v1/inventory/{inventory.json()['id']}",
+            headers=headers,
+            json={"stock": 8, "reason": "Conteo físico verificado"},
+        )
+        adjusted_movements = await client.get(
+            "/api/v1/inventory/movements",
+            headers=headers,
+            params={"inventoryId": inventory.json()["id"]},
+        )
+        rejected_sale = await client.post(
+            "/api/v1/sales",
+            headers=headers,
+            json={
+                "branchId": branch.json()["id"],
+                "productId": product.json()["id"],
+                "quantity": 99,
+            },
+        )
+        inventory_after_rejection = await client.get(
+            f"/api/v1/inventory/{inventory.json()['id']}",
+            headers=headers,
+        )
         report = await client.get("/api/v1/reports", headers=headers)
         missing = await client.get("/api/v1/products/999", headers=headers)
         blocked_company_delete = await client.delete(
@@ -232,6 +260,17 @@ async def test_business_endpoints_complete_sale_and_reporting_flow(
 
     assert inventory_after_sale.json()["stock"] == 7
     assert movements.json()[0]["type"] == "Salida"
+    assert sale_detail.json()["id"] == sale.json()["id"]
+    assert [item["id"] for item in sales_list.json()] == [sale.json()["id"]]
+    assert adjustment.status_code == 200
+    assert adjustment.json()["stock"] == 8
+    assert adjusted_movements.json()[0]["type"] == "Ajuste"
+    assert adjusted_movements.json()[0]["previousStock"] == 7
+    assert adjusted_movements.json()[0]["newStock"] == 8
+    assert adjusted_movements.json()[0]["user"] == "Usuario Administrador"
+    assert rejected_sale.status_code == 409
+    assert rejected_sale.json()["code"] == "resource_conflict"
+    assert inventory_after_rejection.json()["stock"] == 8
     assert report.json()["totalSales"] == 7500
     assert report.json()["unitsSold"] == 3
     assert missing.status_code == 404
@@ -243,6 +282,125 @@ async def test_business_endpoints_complete_sale_and_reporting_flow(
     ):
         assert blocked_delete.status_code == 409
         assert blocked_delete.json()["code"] == "resource_conflict"
+
+
+@pytest.mark.anyio
+async def test_administrative_endpoints_complete_crud_lifecycle(
+    api_session: Session,
+) -> None:
+    headers = authorization_header(
+        api_session,
+        email="crud-admin@matrixflow.pe",
+        role="Administrador",
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://testserver",
+    ) as client:
+        company = await client.post(
+            "/api/v1/companies",
+            headers=headers,
+            json={
+                "name": "Empresa CRUD S.A.C.",
+                "taxId": "20609876543",
+                "sector": "Tecnología",
+                "email": "crud@matrixflow.pe",
+            },
+        )
+        branch = await client.post(
+            "/api/v1/branches",
+            headers=headers,
+            json={
+                "companyId": company.json()["id"],
+                "name": "Sucursal CRUD",
+                "city": "Lima",
+            },
+        )
+        product = await client.post(
+            "/api/v1/products",
+            headers=headers,
+            json={
+                "sku": "CRUD-001",
+                "name": "Producto CRUD",
+                "category": "Pruebas",
+                "price": 100,
+                "minimumStock": 1,
+            },
+        )
+        user = await client.post(
+            "/api/v1/users",
+            headers=headers,
+            json={
+                "name": "Usuario CRUD",
+                "email": "usuario-crud@matrixflow.pe",
+                "password": "demo123",
+                "role": "Consulta",
+            },
+        )
+
+        updated_company = await client.patch(
+            f"/api/v1/companies/{company.json()['id']}",
+            headers=headers,
+            json={"sector": "Servicios"},
+        )
+        updated_branch = await client.patch(
+            f"/api/v1/branches/{branch.json()['id']}",
+            headers=headers,
+            json={"city": "Callao"},
+        )
+        updated_product = await client.patch(
+            f"/api/v1/products/{product.json()['id']}",
+            headers=headers,
+            json={"price": 125.5},
+        )
+        updated_user = await client.patch(
+            f"/api/v1/users/{user.json()['id']}",
+            headers=headers,
+            json={"status": "Inactivo"},
+        )
+        listed_users = await client.get("/api/v1/users", headers=headers)
+
+        deleted_product = await client.delete(
+            f"/api/v1/products/{product.json()['id']}",
+            headers=headers,
+        )
+        deleted_branch = await client.delete(
+            f"/api/v1/branches/{branch.json()['id']}",
+            headers=headers,
+        )
+        deleted_company = await client.delete(
+            f"/api/v1/companies/{company.json()['id']}",
+            headers=headers,
+        )
+        deleted_user = await client.delete(
+            f"/api/v1/users/{user.json()['id']}",
+            headers=headers,
+        )
+        missing_company = await client.get(
+            f"/api/v1/companies/{company.json()['id']}",
+            headers=headers,
+        )
+
+    assert company.status_code == 201
+    assert branch.status_code == 201
+    assert product.status_code == 201
+    assert user.status_code == 201
+    assert updated_company.json()["sector"] == "Servicios"
+    assert updated_branch.json()["city"] == "Callao"
+    assert updated_product.json()["price"] == 125.5
+    assert updated_user.json()["status"] == "Inactivo"
+    assert user.json()["id"] in {item["id"] for item in listed_users.json()}
+    assert all(
+        response.status_code == 204
+        for response in (
+            deleted_product,
+            deleted_branch,
+            deleted_company,
+            deleted_user,
+        )
+    )
+    assert missing_company.status_code == 404
 
 
 @pytest.mark.anyio
@@ -287,6 +445,16 @@ async def test_vector_and_matrix_crud_routes(api_session: Session) -> None:
         assert matrix.status_code == 201
         assert matrix.json()["values"] == [[1, 2], [3, 4]]
 
+        updated_matrix = await client.patch(
+            f"/api/v1/matrices/{matrix.json()['id']}",
+            headers=headers,
+            json={"values": [[5, 6, 7]]},
+        )
+        fetched_matrix = await client.get(
+            f"/api/v1/matrices/{matrix.json()['id']}",
+            headers=headers,
+        )
+
         deleted = await client.delete(
             f"/api/v1/vectors/{vector.json()['id']}",
             headers=headers,
@@ -295,10 +463,22 @@ async def test_vector_and_matrix_crud_routes(api_session: Session) -> None:
             f"/api/v1/vectors/{vector.json()['id']}",
             headers=headers,
         )
+        deleted_matrix = await client.delete(
+            f"/api/v1/matrices/{matrix.json()['id']}",
+            headers=headers,
+        )
+        missing_matrix = await client.get(
+            f"/api/v1/matrices/{matrix.json()['id']}",
+            headers=headers,
+        )
 
     assert deleted.status_code == 204
     assert deleted.content == b""
     assert missing.status_code == 404
+    assert updated_matrix.json()["values"] == [[5, 6, 7]]
+    assert fetched_matrix.json()["values"] == [[5, 6, 7]]
+    assert deleted_matrix.status_code == 204
+    assert missing_matrix.status_code == 404
 
 
 @pytest.mark.anyio

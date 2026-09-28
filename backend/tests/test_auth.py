@@ -142,6 +142,14 @@ async def test_login_and_me_endpoints_use_bearer_authentication(session: Session
             transport=ASGITransport(app=app),
             base_url="http://testserver",
         ) as client:
+            rejected_login = await client.post(
+                "/api/v1/auth/login",
+                json={"email": "admin@matrixflow.pe", "password": "incorrecta"},
+            )
+            assert rejected_login.status_code == 401
+            assert rejected_login.json()["code"] == "authentication_error"
+            assert rejected_login.headers["www-authenticate"] == "Bearer"
+
             login_response = await client.post(
                 "/api/v1/auth/login",
                 json={"email": "admin@matrixflow.pe", "password": "demo123"},
