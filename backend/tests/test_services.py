@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 import app.models  # noqa: F401 - registers every SQLAlchemy table
 from app.core.database import Base
-from app.core.exceptions import ResourceConflictError
+from app.core.exceptions import ResourceConflictError, ResourceNotFoundError
 from app.core.security import verify_password
 from app.models.user import User
 from app.schemas.branch import BranchCreate
@@ -209,6 +209,67 @@ def test_sale_is_atomic_with_inventory_movement_and_report(session: Session) -> 
     assert inventory_service.get(inventory.id).stock == 7
 
 
+def test_sale_rolls_back_stock_when_a_related_write_fails(
+    session: Session,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _, branch_id, product_id = create_catalog(session)
+    inventory_service = InventoryService(session)
+    inventory = inventory_service.create(
+        InventoryCreate(branch_id=branch_id, product_id=product_id, stock=10),
+        user="Ana Torres",
+    )
+    sale_service = SaleService(session)
+
+    def fail_movement(_movement):
+        raise RuntimeError("Fallo simulado al registrar el movimiento")
+
+    monkeypatch.setattr(sale_service.movements, "add", fail_movement)
+
+    with pytest.raises(RuntimeError, match="Fallo simulado"):
+        sale_service.create(
+            SaleCreate(branch_id=branch_id, product_id=product_id, quantity=3),
+            user="Ana Torres",
+        )
+
+    assert inventory_service.get(inventory.id).stock == 10
+    assert sale_service.list() == []
+
+
+def test_related_business_records_cannot_be_deleted(session: Session) -> None:
+    company_id, branch_id, product_id = create_catalog(session)
+    inventory = InventoryService(session).create(
+        InventoryCreate(branch_id=branch_id, product_id=product_id, stock=5)
+    )
+
+    with pytest.raises(ResourceConflictError, match="tiene sucursales"):
+        CompanyService(session).delete(company_id)
+    with pytest.raises(ResourceConflictError, match="ventas, inventario o metas"):
+        BranchService(session).delete(branch_id)
+    with pytest.raises(ResourceConflictError, match="inventario o ventas"):
+        ProductService(session).delete(product_id)
+
+    assert CompanyService(session).get(company_id).id == company_id
+    assert BranchService(session).get(branch_id).id == branch_id
+    assert ProductService(session).get(product_id).id == product_id
+    assert InventoryService(session).get(inventory.id).stock == 5
+
+
+def test_unrelated_business_records_can_be_deleted(session: Session) -> None:
+    company_id, branch_id, product_id = create_catalog(session)
+
+    ProductService(session).delete(product_id)
+    BranchService(session).delete(branch_id)
+    CompanyService(session).delete(company_id)
+
+    with pytest.raises(ResourceNotFoundError):
+        ProductService(session).get(product_id)
+    with pytest.raises(ResourceNotFoundError):
+        BranchService(session).get(branch_id)
+    with pytest.raises(ResourceNotFoundError):
+        CompanyService(session).get(company_id)
+
+
 def test_inventory_adjustment_and_operation_history(session: Session) -> None:
     _, branch_id, product_id = create_catalog(session)
     inventory_service = InventoryService(session)
@@ -221,6 +282,11 @@ def test_inventory_adjustment_and_operation_history(session: Session) -> None:
         user="Ana Torres",
     )
     assert adjusted.stock == 6
+    adjustment = inventory_service.list_movements(inventory_id=inventory.id)[0]
+    assert adjustment.previous_stock == 4
+    assert adjustment.new_stock == 6
+    assert adjustment.reason == "Conteo físico validado"
+    assert adjustment.user == "Ana Torres"
 
     operation = OperationService(session).record(
         OperationCreate.model_validate({
@@ -233,4 +299,8 @@ def test_inventory_adjustment_and_operation_history(session: Session) -> None:
         user="Ana Torres",
     )
     assert operation.result == [4.0, 6.0]
+    assert operation.inputs == "Suma: Vector #1, Vector #2"
+    assert operation.user == "Ana Torres"
+    assert operation.created_at is not None
+    assert operation.status.value == "Completada"
     assert ReportService(session).get_dashboard().operations_count == 1

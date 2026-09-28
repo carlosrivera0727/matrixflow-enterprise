@@ -13,11 +13,28 @@ class InventoryRepository(BaseRepository[Inventory]):
         super().__init__(session, Inventory)
 
     def get_position(self, *, branch_id: int, product_id: int) -> Inventory | None:
-        statement = select(Inventory).where(
+        return self.session.scalar(
+            self._position_statement(branch_id=branch_id, product_id=product_id)
+        )
+
+    def get_position_for_update(
+        self,
+        *,
+        branch_id: int,
+        product_id: int,
+    ) -> Inventory | None:
+        statement = self._position_statement(
+            branch_id=branch_id,
+            product_id=product_id,
+        ).with_for_update()
+        return self.session.scalar(statement)
+
+    @staticmethod
+    def _position_statement(*, branch_id: int, product_id: int):
+        return select(Inventory).where(
             Inventory.branch_id == branch_id,
             Inventory.product_id == product_id,
         )
-        return self.session.scalar(statement)
 
 
 class InventoryMovementRepository(BaseRepository[InventoryMovement]):

@@ -55,6 +55,10 @@ class ProductService(BaseService):
 
     def delete(self, product_id: int) -> None:
         product = self._get_product(product_id)
+        if self.products.has_dependencies(product_id):
+            raise ResourceConflictError(
+                "No se puede eliminar un producto con inventario o ventas relacionadas."
+            )
         with self.transaction():
             self.products.delete(product)
 

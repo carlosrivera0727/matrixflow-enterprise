@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import ResourceNotFoundError
+from app.core.exceptions import ResourceConflictError, ResourceNotFoundError
 from app.models.branch import Branch
 from app.repositories.branch_repository import BranchRepository
 from app.repositories.company_repository import CompanyRepository
@@ -51,6 +51,10 @@ class BranchService(BaseService):
 
     def delete(self, branch_id: int) -> None:
         branch = self._get_branch(branch_id)
+        if self.branches.has_dependencies(branch_id):
+            raise ResourceConflictError(
+                "No se puede eliminar una sucursal con ventas, inventario o metas relacionadas."
+            )
         with self.transaction():
             self.branches.delete(branch)
 

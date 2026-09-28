@@ -1,10 +1,12 @@
 from collections.abc import Sequence
 
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.orm import Session
 
-from app.models.product import Product
 from app.models.category import Category
+from app.models.inventory import Inventory
+from app.models.product import Product
+from app.models.sale_detail import SaleDetail
 from app.repositories.base import BaseRepository
 
 
@@ -19,6 +21,13 @@ class ProductRepository(BaseRepository[Product]):
     def get_by_sku(self, sku: str) -> Product | None:
         statement = select(Product).where(Product.sku == sku)
         return self.session.scalar(statement)
+
+    def has_dependencies(self, product_id: int) -> bool:
+        statements = (
+            select(exists().where(Inventory.product_id == product_id)),
+            select(exists().where(SaleDetail.product_id == product_id)),
+        )
+        return any(bool(self.session.scalar(statement)) for statement in statements)
 
 
 class CategoryRepository(BaseRepository[Category]):

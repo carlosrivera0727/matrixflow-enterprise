@@ -54,7 +54,7 @@ class SaleService(BaseService):
         if product is None:
             raise ResourceNotFoundError("El producto indicado no existe.")
 
-        inventory = self.inventory.get_position(
+        inventory = self.inventory.get_position_for_update(
             branch_id=data.branch_id,
             product_id=data.product_id,
         )

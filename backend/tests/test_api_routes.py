@@ -217,6 +217,18 @@ async def test_business_endpoints_complete_sale_and_reporting_flow(
         )
         report = await client.get("/api/v1/reports", headers=headers)
         missing = await client.get("/api/v1/products/999", headers=headers)
+        blocked_company_delete = await client.delete(
+            f"/api/v1/companies/{company_body['id']}",
+            headers=headers,
+        )
+        blocked_branch_delete = await client.delete(
+            f"/api/v1/branches/{branch.json()['id']}",
+            headers=headers,
+        )
+        blocked_product_delete = await client.delete(
+            f"/api/v1/products/{product.json()['id']}",
+            headers=headers,
+        )
 
     assert inventory_after_sale.json()["stock"] == 7
     assert movements.json()[0]["type"] == "Salida"
@@ -224,6 +236,13 @@ async def test_business_endpoints_complete_sale_and_reporting_flow(
     assert report.json()["unitsSold"] == 3
     assert missing.status_code == 404
     assert missing.json()["code"] == "resource_not_found"
+    for blocked_delete in (
+        blocked_company_delete,
+        blocked_branch_delete,
+        blocked_product_delete,
+    ):
+        assert blocked_delete.status_code == 409
+        assert blocked_delete.json()["code"] == "resource_conflict"
 
 
 @pytest.mark.anyio

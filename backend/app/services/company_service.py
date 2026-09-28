@@ -45,6 +45,10 @@ class CompanyService(BaseService):
 
     def delete(self, company_id: int) -> None:
         company = self._get_company(company_id)
+        if self.companies.has_branches(company_id):
+            raise ResourceConflictError(
+                "No se puede eliminar una empresa que tiene sucursales relacionadas."
+            )
         with self.transaction():
             self.companies.delete(company)
 
