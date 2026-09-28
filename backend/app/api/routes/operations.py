@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query
 
 from app.api.dependencies import BusinessUser, DatabaseSession
 from app.schemas.operation import OperationCreate, OperationResponse
 from app.services.operation_service import OperationService
+
 
 router = APIRouter(
     prefix="/operations",
@@ -13,20 +14,15 @@ router = APIRouter(
 @router.post(
     "",
     response_model=OperationResponse,
-    responses={
-        status.HTTP_501_NOT_IMPLEMENTED: {
-            "description": "El motor NumPy se implementa en la fase 2.7."
-        }
-    },
 )
 def create_operation(
-    _data: OperationCreate,
-    _session: DatabaseSession,
-    _current_user: BusinessUser,
+    data: OperationCreate,
+    session: DatabaseSession,
+    current_user: BusinessUser,
 ) -> OperationResponse:
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="El motor matemático NumPy se implementará en la fase 2.7.",
+    return OperationService(session).execute(
+        data,
+        user=current_user.email,
     )
 
 
