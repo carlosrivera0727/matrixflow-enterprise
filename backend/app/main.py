@@ -1,15 +1,25 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.errors import register_exception_handlers
 from app.api.router import api_router
+from app.bootstrap import prepare_development_database
 from app.core.config import settings
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    prepare_development_database()
+    yield
 
 
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     description="API empresarial para análisis de ventas, inventario y álgebra lineal.",
+    lifespan=lifespan,
 )
 
 

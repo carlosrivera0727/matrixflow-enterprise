@@ -135,6 +135,46 @@ def test_vector_and_matrix_services_persist_ordered_values(session: Session) -> 
     assert updated_matrix.values == [[5, 6, 7]]
 
 
+def test_vector_operation_result_survives_a_new_database_session(tmp_path) -> None:
+    database_path = tmp_path / "vector-results.db"
+    engine = create_engine(f"sqlite:///{database_path.as_posix()}")
+    Base.metadata.create_all(engine)
+
+    with Session(engine, expire_on_commit=False) as first_session:
+        vector_service = VectorService(first_session)
+        first = vector_service.create(
+            VectorCreate(
+                name="Vector A",
+                description="Primer operando",
+                values=[1, 2, 3],
+            )
+        )
+        second = vector_service.create(
+            VectorCreate(
+                name="Vector B",
+                description="Segundo operando",
+                values=[4, 5, 6],
+            )
+        )
+        operation = OperationService(first_session).execute(
+            OperationCreate.model_validate(
+                {
+                    "category": "Vector",
+                    "operationType": "Suma",
+                    "firstId": first.id,
+                    "secondId": second.id,
+                }
+            ),
+            user="Analista MatrixFlow",
+        )
+        operation_id = operation.id
+
+    with Session(engine, expire_on_commit=False) as second_session:
+        saved = OperationService(second_session).get(operation_id)
+
+    assert saved.result == [5.0, 7.0, 9.0]
+
+
 def test_sale_is_atomic_with_inventory_movement_and_report(session: Session) -> None:
     _, branch_id, product_id = create_catalog(session)
     inventory_service = InventoryService(session)

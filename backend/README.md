@@ -33,6 +33,11 @@ Servicios disponibles:
 - Documentación Swagger: `http://127.0.0.1:8000/docs`
 - Estado de salud: `http://127.0.0.1:8000/health`
 
+En desarrollo, el arranque crea las tablas faltantes en `backend/matrixflow.db`
+y registra de forma idempotente los tres usuarios de demostración documentados
+por el frontend. En producción, utiliza migraciones y configura
+`ENVIRONMENT=production`.
+
 La opción `--reload` es sólo para desarrollo. En producción debe ejecutarse sin recarga automática.
 
 ## Pruebas
@@ -66,6 +71,21 @@ Authorization: Bearer <accessToken>
 ```
 
 `GET /api/v1/auth/me` devuelve el usuario de la sesión. En cada solicitud se comprueba que el usuario continúe registrado y activo. La función `require_roles` permite limitar endpoints a uno o más roles.
+
+### Probar vectores desde Swagger
+
+1. Ejecuta `POST /api/v1/auth/login` con `analista@matrixflow.pe` y
+   `demo123`.
+2. Copia `accessToken`, pulsa **Authorize** y pega únicamente el token.
+3. Crea dos operandos mediante `POST /api/v1/vectors`.
+4. Ejecuta el cálculo mediante `POST /api/v1/operations`, usando los `id`
+   devueltos por los vectores.
+5. Comprueba el resultado guardado mediante `GET /api/v1/operations` o
+   `GET /api/v1/operations/{operation_id}`.
+
+`POST /api/v1/vectors` guarda los valores de entrada del vector. El campo
+`result` pertenece a la operación matemática y se persiste en el historial de
+`/operations`.
 
 ## API REST
 

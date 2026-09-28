@@ -2,7 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     environment: str = "development"
     api_prefix: str = "/api/v1"
     database_url: str = "sqlite:///./matrixflow.db"
+    auto_create_tables: bool = True
+    seed_demo_users: bool = True
     cors_origins: list[str] = Field(
         default_factory=lambda: [
             "http://localhost:5173",
@@ -41,6 +43,18 @@ class Settings(BaseSettings):
         extra="ignore",
         case_sensitive=False,
     )
+
+    @field_validator("database_url")
+    @classmethod
+    def resolve_relative_sqlite_path(cls, value: str) -> str:
+        """Keep the local database in backend regardless of the launch directory."""
+
+        prefix = "sqlite:///./"
+        if value.startswith(prefix):
+            relative_path = value.removeprefix(prefix)
+            database_path = (BACKEND_DIR / relative_path).resolve()
+            return f"sqlite:///{database_path.as_posix()}"
+        return value
 
     @model_validator(mode="after")
     def reject_development_secret_in_production(self):

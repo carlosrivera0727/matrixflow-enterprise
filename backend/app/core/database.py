@@ -31,6 +31,14 @@ class Base(DeclarativeBase):
     pass
 
 
+def initialize_database_schema() -> None:
+    """Create the development schema after every model has been registered."""
+
+    import app.models  # noqa: F401 - registers SQLAlchemy metadata
+
+    Base.metadata.create_all(bind=engine)
+
+
 def get_db() -> Generator[Session, None, None]:
     db = SessionLocal()
 
