@@ -11,7 +11,7 @@ from app.algorithms.types import (
 
 @runtime_checkable
 class LinearAlgebraEngine(Protocol):
-    """Contract implemented by the NumPy engine in the mathematical phase."""
+    """Contract implemented by the NumPy mathematical engine."""
 
     def add_vectors(self, left: VectorInput, right: VectorInput) -> VectorResult: ...
 

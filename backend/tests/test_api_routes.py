@@ -94,7 +94,7 @@ async def test_routes_enforce_authentication_and_roles(api_session: Session) -> 
             "/api/v1/products",
             headers=read_only_headers,
         )
-        pending_engine = await client.post(
+        missing_operand = await client.post(
             "/api/v1/operations",
             headers=analyst_headers,
             json={
@@ -109,7 +109,7 @@ async def test_routes_enforce_authentication_and_roles(api_session: Session) -> 
     assert forbidden_write.status_code == 403
     assert allowed_report.status_code == 200
     assert forbidden_catalog.status_code == 403
-    assert pending_engine.status_code == 501
+    assert missing_operand.status_code == 404
 
 
 @pytest.mark.anyio
@@ -280,3 +280,140 @@ async def test_vector_and_matrix_crud_routes(api_session: Session) -> None:
     assert deleted.status_code == 204
     assert deleted.content == b""
     assert missing.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_numpy_operations_are_executed_and_saved_in_history(
+    api_session: Session,
+) -> None:
+    headers = authorization_header(
+        api_session,
+        email="operaciones@matrixflow.pe",
+        role="Analista",
+    )
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://testserver",
+    ) as client:
+        vector_a = await client.post(
+            "/api/v1/vectors",
+            headers=headers,
+            json={
+                "name": "Vector A",
+                "description": "Primer vector de prueba",
+                "values": [1, 2, 3],
+            },
+        )
+        vector_b = await client.post(
+            "/api/v1/vectors",
+            headers=headers,
+            json={
+                "name": "Vector B",
+                "description": "Segundo vector de prueba",
+                "values": [4, 5, 6],
+            },
+        )
+        short_vector = await client.post(
+            "/api/v1/vectors",
+            headers=headers,
+            json={
+                "name": "Vector corto",
+                "description": "Vector incompatible",
+                "values": [1, 2],
+            },
+        )
+        matrix_a = await client.post(
+            "/api/v1/matrices",
+            headers=headers,
+            json={
+                "name": "Matriz A",
+                "description": "Primera matriz de prueba",
+                "values": [[1, 2], [3, 4]],
+            },
+        )
+        matrix_b = await client.post(
+            "/api/v1/matrices",
+            headers=headers,
+            json={
+                "name": "Matriz B",
+                "description": "Segunda matriz de prueba",
+                "values": [[5, 6], [7, 8]],
+            },
+        )
+
+        vector_sum = await client.post(
+            "/api/v1/operations",
+            headers=headers,
+            json={
+                "category": "Vector",
+                "operationType": "Suma",
+                "firstId": vector_a.json()["id"],
+                "secondId": vector_b.json()["id"],
+            },
+        )
+        dot_product_response = await client.post(
+            "/api/v1/operations",
+            headers=headers,
+            json={
+                "category": "Vector",
+                "operationType": "Producto escalar",
+                "firstId": vector_a.json()["id"],
+                "secondId": vector_b.json()["id"],
+            },
+        )
+        combination = await client.post(
+            "/api/v1/operations",
+            headers=headers,
+            json={
+                "category": "Vector",
+                "operationType": "Combinación lineal",
+                "firstId": vector_a.json()["id"],
+                "secondId": vector_b.json()["id"],
+                "scalar": 2,
+                "coefficientB": -1,
+            },
+        )
+        matrix_product = await client.post(
+            "/api/v1/operations",
+            headers=headers,
+            json={
+                "category": "Matriz",
+                "operationType": "Multiplicación",
+                "firstId": matrix_a.json()["id"],
+                "secondId": matrix_b.json()["id"],
+            },
+        )
+        transpose = await client.post(
+            "/api/v1/operations",
+            headers=headers,
+            json={
+                "category": "Matriz",
+                "operationType": "Transposición",
+                "firstId": matrix_a.json()["id"],
+            },
+        )
+        incompatible = await client.post(
+            "/api/v1/operations",
+            headers=headers,
+            json={
+                "category": "Vector",
+                "operationType": "Suma",
+                "firstId": vector_a.json()["id"],
+                "secondId": short_vector.json()["id"],
+            },
+        )
+        history = await client.get("/api/v1/operations", headers=headers)
+
+    assert vector_sum.status_code == 201
+    assert vector_sum.json()["result"] == [5.0, 7.0, 9.0]
+    assert vector_sum.json()["user"] == "Usuario Analista"
+    assert vector_sum.json()["status"] == "Completada"
+    assert dot_product_response.json()["result"] == 32.0
+    assert combination.json()["result"] == [-2.0, -1.0, 0.0]
+    assert matrix_product.json()["result"] == [[19.0, 22.0], [43.0, 50.0]]
+    assert transpose.json()["result"] == [[1.0, 3.0], [2.0, 4.0]]
+    assert incompatible.status_code == 400
+    assert incompatible.json()["code"] == "invalid_operation"
+    assert len(history.json()) == 5
+    assert history.json()[0]["type"] == "Transposición"

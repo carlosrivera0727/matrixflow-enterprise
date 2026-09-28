@@ -26,3 +26,7 @@ class InvalidTokenError(AuthenticationError):
 
 class PermissionDeniedError(ApplicationError):
     code = "permission_denied"
+
+
+class InvalidOperationError(ApplicationError):
+    code = "invalid_operation"

@@ -75,10 +75,20 @@ Los módulos empresariales están disponibles bajo `/api/v1`:
 - `/sales`: registro y consulta de ventas.
 - `/inventory` y `/inventory/movements`: existencias, ajustes y trazabilidad.
 - `/vectors` y `/matrices`: CRUD de estructuras matemáticas.
-- `/operations`: ejecución e historial de operaciones.
+- `/operations`: ejecución NumPy e historial de operaciones.
 - `/reports`: indicadores agregados.
 
-Las respuestas usan campos `camelCase`, los listados aceptan paginación y los errores esperados devuelven códigos HTTP `404`, `409`, `401` o `403`. La ejecución de `POST /operations` se habilitará al incorporar el motor NumPy en la siguiente etapa.
+Las respuestas usan campos `camelCase`, los listados aceptan paginación y los errores esperados devuelven códigos HTTP `400`, `404`, `409`, `401` o `403`.
+
+## Motor matemático NumPy
+
+`POST /api/v1/operations` obtiene los vectores o matrices almacenados, valida sus dimensiones, ejecuta el cálculo con NumPy y guarda el resultado en el historial. Están disponibles:
+
+- Vectores: suma, resta, multiplicación por escalar, producto escalar y combinación lineal.
+- Matrices: suma, resta, multiplicación, transposición y multiplicación por escalar.
+- Validación de operandos vacíos, valores no finitos y dimensiones incompatibles.
+
+Los algoritmos son funciones puras e independientes de FastAPI, Pydantic y SQLAlchemy. Sus resultados se convierten a tipos nativos de Python antes de almacenarse como JSON.
 
 ## Arquitectura
 
