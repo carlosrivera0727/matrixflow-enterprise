@@ -7,7 +7,6 @@ import {
 import { useEffect, useState } from "react";
 
 import PageHeader from "../../components/common/PageHeader";
-import { useAuth } from "../../hooks/useAuth";
 import apiClient from "../../services/api/client";
 import type {
   MatrixRecord,
@@ -73,7 +72,6 @@ const formatResult = (value: OperationResult): string => {
 };
 
 export default function Operaciones() {
-  const { user } = useAuth();
 
   const [vectors, setVectors] = useState<VectorRecord[]>([]);
   const [matrices, setMatrices] = useState<MatrixRecord[]>([]);
