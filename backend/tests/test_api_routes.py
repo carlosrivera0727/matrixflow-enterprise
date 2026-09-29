@@ -306,8 +306,11 @@ async def test_administrative_endpoints_complete_crud_lifecycle(
                 "taxId": "20609876543",
                 "sector": "Tecnología",
                 "email": "crud@matrixflow.pe",
+                "phone": "+51 999 123 456",
+                "address": "Av. Pruebas 123, Lima",
             },
         )
+        assert company.status_code == 201
         branch = await client.post(
             "/api/v1/branches",
             headers=headers,
@@ -315,8 +318,10 @@ async def test_administrative_endpoints_complete_crud_lifecycle(
                 "companyId": company.json()["id"],
                 "name": "Sucursal CRUD",
                 "city": "Lima",
+                "address": "Av. Sucursal 456, Lima",
             },
         )
+        assert branch.status_code == 201
         product = await client.post(
             "/api/v1/products",
             headers=headers,
@@ -328,6 +333,7 @@ async def test_administrative_endpoints_complete_crud_lifecycle(
                 "minimumStock": 1,
             },
         )
+        assert product.status_code == 201
         user = await client.post(
             "/api/v1/users",
             headers=headers,
@@ -338,6 +344,7 @@ async def test_administrative_endpoints_complete_crud_lifecycle(
                 "role": "Consulta",
             },
         )
+        assert user.status_code == 201
 
         updated_company = await client.patch(
             f"/api/v1/companies/{company.json()['id']}",

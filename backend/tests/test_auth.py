@@ -147,7 +147,7 @@ async def test_login_and_me_endpoints_use_bearer_authentication(session: Session
                 json={"email": "admin@matrixflow.pe", "password": "incorrecta"},
             )
             assert rejected_login.status_code == 401
-            assert rejected_login.json()["code"] == "authentication_error"
+            assert rejected_login.json()["detail"] == "Correo o contraseña incorrectos."
             assert rejected_login.headers["www-authenticate"] == "Bearer"
 
             login_response = await client.post(
