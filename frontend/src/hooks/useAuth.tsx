@@ -1,54 +1,60 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { Role } from "../types";
-
-interface SessionUser {
-  name: string;
-  email: string;
-  role: Role;
-}
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import {
+  authenticate,
+  getAuthenticationErrorMessage,
+  type AuthenticatedUser,
+} from "../services/api/auth";
 
 interface AuthContextValue {
-  user: SessionUser | null;
+  user: AuthenticatedUser | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
 const STORAGE_KEY = "matrixflow_session";
+const TOKEN_KEY = "matrixflow_token";
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const demoUsers: Record<string, { password: string; user: SessionUser }> = {
-  "admin@matrixflow.pe": { password: "demo123", user: { name: "Ana Torres", email: "admin@matrixflow.pe", role: "Administrador" } },
-  "analista@matrixflow.pe": { password: "demo123", user: { name: "Luis Mendoza", email: "analista@matrixflow.pe", role: "Analista" } },
-  "consulta@matrixflow.pe": { password: "demo123", user: { name: "Carla Rojas", email: "consulta@matrixflow.pe", role: "Consulta" } },
-};
+function readStoredUser(): AuthenticatedUser | null {
+  if (!window.localStorage.getItem(TOKEN_KEY)) return null;
+
+  const stored = window.localStorage.getItem(STORAGE_KEY);
+  if (!stored) return null;
+
+  try {
+    return JSON.parse(stored) as AuthenticatedUser;
+  } catch {
+    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(TOKEN_KEY);
+    return null;
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<SessionUser | null>(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) return null;
-    try { return JSON.parse(stored) as SessionUser; } catch { return null; }
-  });
-
-  useEffect(() => {
-    if (user) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    else window.localStorage.removeItem(STORAGE_KEY);
-  }, [user]);
+  const [user, setUser] = useState<AuthenticatedUser | null>(readStoredUser);
 
   const value = useMemo<AuthContextValue>(() => ({
     user,
     isAuthenticated: Boolean(user),
     login: async (email, password) => {
-      await new Promise((resolve) => window.setTimeout(resolve, 450));
-      const account = demoUsers[email.toLowerCase()];
-      if (!account || account.password !== password) throw new Error("Correo o contraseña incorrectos.");
-      setUser(account.user);
-      window.localStorage.setItem("matrixflow_token", "demo-token-phase-1");
+      try {
+        const session = await authenticate(email, password);
+        window.localStorage.setItem(TOKEN_KEY, session.accessToken);
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session.user));
+        setUser(session.user);
+      } catch (error) {
+        window.localStorage.removeItem(TOKEN_KEY);
+        window.localStorage.removeItem(STORAGE_KEY);
+        setUser(null);
+        throw new Error(getAuthenticationErrorMessage(error), { cause: error });
+      }
     },
     logout: () => {
       setUser(null);
-      window.localStorage.removeItem("matrixflow_token");
+      window.localStorage.removeItem(TOKEN_KEY);
+      window.localStorage.removeItem(STORAGE_KEY);
     },
   }), [user]);
 
