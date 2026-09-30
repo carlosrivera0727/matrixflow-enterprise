@@ -1,13 +1,29 @@
-import type { OperationResult } from "../types";
+export const formatDate = (value: string | Date | null | undefined) => {
+  if (!value) {
+    return "Sin fecha";
+  }
 
-export const formatCurrency = (value: number, currency: "PEN" | "USD" = "PEN") =>
-  new Intl.NumberFormat("es-PE", { style: "currency", currency, maximumFractionDigits: 2 }).format(value);
+  const date = value instanceof Date ? value : new Date(value);
 
-export const formatDate = (value: string) =>
-  new Intl.DateTimeFormat("es-PE", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+  if (Number.isNaN(date.getTime())) {
+    return "Sin fecha";
+  }
 
-export const formatResult = (result: OperationResult) => {
-  if (typeof result === "number") return new Intl.NumberFormat("es-PE", { maximumFractionDigits: 3 }).format(result);
-  if (Array.isArray(result[0])) return (result as number[][]).map((row) => `[ ${row.join("  ")} ]`).join("\n");
-  return `[ ${(result as number[]).join(", ")} ]`;
+  return new Intl.DateTimeFormat("es-PE", {
+    dateStyle: "medium",
+  }).format(date);
+};
+
+export const formatCurrency = (
+  value: number | null | undefined,
+  currency = "PEN",
+) => {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return "S/ 0.00";
+  }
+
+  return new Intl.NumberFormat("es-PE", {
+    style: "currency",
+    currency,
+  }).format(value);
 };

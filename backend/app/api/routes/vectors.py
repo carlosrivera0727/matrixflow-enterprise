@@ -4,6 +4,7 @@ from app.api.dependencies import BusinessUser, DatabaseSession
 from app.schemas.vector import VectorCreate, VectorResponse, VectorUpdate
 from app.services.vector_service import VectorService
 
+
 router = APIRouter(
     prefix="/vectors",
     tags=["Vectors"],
@@ -17,10 +18,17 @@ def get_vectors(
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
 ) -> list[VectorResponse]:
-    return VectorService(session).list(offset=offset, limit=limit)
+    return VectorService(session).list(
+        offset=offset,
+        limit=limit,
+    )
 
 
-@router.post("", response_model=VectorResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=VectorResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 def create_vector(
     data: VectorCreate,
     session: DatabaseSession,
@@ -48,7 +56,10 @@ def update_vector(
     return VectorService(session).update(vector_id, data)
 
 
-@router.delete("/{vector_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{vector_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 def delete_vector(
     vector_id: int,
     session: DatabaseSession,
